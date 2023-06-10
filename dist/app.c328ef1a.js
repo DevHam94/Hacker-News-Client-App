@@ -118,10 +118,61 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   return newRequire;
 })({"app.js":[function(require,module,exports) {
+var container = document.getElementById('root');
 var ajax = new XMLHttpRequest();
-ajax.open('GET', 'https://api.hnpwa.com/v0/news/1.json', false); // 사이트에서 동기적으로 데이터를 가져오겠다는 옵션
-ajax.send(); // 데이터를 가져온다.
-},{}],"../../../../../../Users/gkaeo/AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+var content = document.createElement("div");
+var NEWS_URL = "https://api.hnpwa.com/v0/news/1.json";
+var CONTENT_URL = "https://api.hnpwa.com/v0/item/@id.json";
+var store = {
+  currentPage: 1
+};
+function getData(url) {
+  ajax.open("GET", url, false); // 사이트에서 동기적으로 데이터를 가져오겠다는 옵션
+  ajax.send(); // 데이터를 가져온다.
+
+  return JSON.parse(ajax.response);
+}
+function newsFeed() {
+  // 자주 사용되는 패턴 배열형태로 저장을한다. 
+  var newsFeed = JSON.parse(NEWS_URL);
+  var newsList = [];
+  var template = "\n    <div class=\"bg-gray-600 min-h-screen\">\n    <div class=\"bg-white text-xl\">\n      <div class=\"mx-auto px-4\">\n        <div class=\"flex justify-between items-center py-6\">\n          <div class=\"flex justify-start\">\n            <h1 class=\"font-extrabold\">Hacker News</h1>\n          </div>\n          <div class=\"items-center justify-end\">\n            <a href=\"#/page/{{__prev_page__}}\" class=\"text-gray-500\">\n              Previous\n            </a>\n            <a href=\"#/page/{{__next_page__}}\" class=\"text-gray-500 ml-4\">\n              Next\n            </a>\n          </div>\n        </div>\n      </div>\n    </div>\n    <div class=\"p-4 text-2xl text-gray-700\">\n      {{__news_feed__}}\n    </div>\n    </div>\n  ";
+  for (var i = (store.currentPage - 1) * 10; i < store.currentPage * 10; i++) {
+    newsList.push("\n    <li> \n      <a href=\"#/show/".concat(newsFeed[i].id, "\">  \n        ").concat(newsFeed[i].title, " (").concat(newsFeed[i].comments_count, ") \n      </a> \n    </li>\n    "));
+  }
+  template = template.replace('{{__news_feed__}}', newsList.join(''));
+  template = template.replace('{{__prev_page__}}', store.currentPage > 1 ? store.currentPage - 1 : 1);
+  template = template.replace('{{__next_page__}}', store.currentPage + 1);
+  container.innerHTML = template;
+}
+
+//console.log(ajax.response); // 데이터를 가져오는걸 성공했다.
+// 자바스크립트에서 보이는것을 응답 값을 객체로 바꿔볼꺼다. 보기쉽게하기위해서 Json형식만 가능하다.
+
+function newsDetail() {
+  var id = location.hash.substr(7);
+  var newsContent = getData(CONTENT_URL.replace('@id', id));
+  var title = document.createElement("h1");
+  container.innerHTML = "\n    <h1>".concat(newsContent.title, "</h1>\n\n    <div>\n      <a href=\"#\">\uBAA9\uB85D\uC73C\uB85C</a>\n    </div>\n  ");
+}
+function router() {
+  var routePath = location.hash;
+  if (routePath === '') {
+    // 첫 진입시. location에 #가 들어있으면 빈 값을 반환해서 작동한다. 
+    newsFeed();
+  } else if (routePath.indexOf('#/page/') >= 0) {
+    store.currentPage = Number(routePath.substr(7));
+    newsFeed();
+  } else {
+    newsDetail();
+  }
+
+  // 시작하자 마자 게시글을 보여주게 
+  newsFeed();
+}
+window.addEventListener("hashchange", router);
+router();
+},{}],"C:/Users/gkaeo/AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -146,7 +197,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "12424" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "11322" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
@@ -290,5 +341,5 @@ function hmrAcceptRun(bundle, id) {
     return true;
   }
 }
-},{}]},{},["../../../../../../Users/gkaeo/AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","app.js"], null)
+},{}]},{},["C:/Users/gkaeo/AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","app.js"], null)
 //# sourceMappingURL=/app.c328ef1a.js.map
