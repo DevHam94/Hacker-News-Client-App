@@ -1,17 +1,49 @@
 
+type Store = {
+  currentPage: number;
+  feeds: NewsFeed[];
+}
 
+type News = {
+  id: number;
+  time_ago: string;
+  title: string;
+  url: string;
+  user: string;
+  content: string;
+}
 
-const container = document.getElementById('root');
-const ajax = new XMLHttpRequest();
+type NewsFeed = News & {
+  id: number;
+  comments_count: number;
+  url: string;
+  user: string;
+  time_ago: string;
+  points: number;
+  title: string;
+  read?: boolean;
+}
+
+type NewsDetail = News & {
+  comments: NewsComment[];
+}
+
+type NewsComment = News & {
+  comments: NewsComment[];
+  level: number;
+}
+
+const container: HTMLElement | null = document.getElementById('root');
+const ajax: XMLHttpRequest = new XMLHttpRequest();
 const content = document.createElement('div');
 const NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
 const CONTENT_URL = "https://api.hnpwa.com/v0/item/@id.json";
-const store = {
+const store: Store = {
   currentPage: 1,
   feeds: [],
 };
 
-function getData(url) {
+function getData(url: string): NewsFeed[] | NewsDetail {
   ajax.open("GET", url, false); // 사이트에서 동기적으로 데이터를 가져오겠다는 옵션
   ajax.send(); // 데이터를 가져온다.
 
@@ -20,15 +52,24 @@ function getData(url) {
 
 function makeFeed(feeds) {
   for(let i = 0; i < feeds.length; i++) {
+    i = 10;
+    i = 'abc';
     feeds[i].read = false;
   }
 
   return feeds;
 }
 
+function updateView(html){
+  if(container != null){
+    container.innerHTML = template;
+  } else {
+    console.error('최상위 컨테이너가 없어 UI를 진행하지 못합니다.');
+  }
+}
 function newsFeed(){
     // 자주 사용되는 패턴 배열형태로 저장을한다. 
-  let newsFeed = store.feeds;
+  let newsFeed: NewsFeed[] = store.feeds;
   const newsList = [];
   let template = `
     <div class="bg-gray-600 min-h-screen">
@@ -85,7 +126,7 @@ function newsFeed(){
   template = template.replace('{{__prev_page__}}', store.currentPage > 1 ? store.currentPage - 1 : 1);
   template = template.replace('{{__next_page__}}', store.currentPage + 1);  
 
-  container.innerHTML = template;
+  updateView(template);
 }
 
 //console.log(ajax.response); // 데이터를 가져오는걸 성공했다.
@@ -154,7 +195,7 @@ function newsDetail() {
     return commentString.join('');
   }
 
-  container.innerHTML = template.replace('{{__comments__}}', makeComment(newsContent.comments));
+  updateView(template.replace('{{__comments__}}', makeComment(newsContent.comments)));
 }
 
 
