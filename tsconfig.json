@@ -1,0 +1,13 @@
+// 타입스크립트를 웹브라우저에서 실행시키기위해서 자바스크립트로 변환하는 과정에서 여러가지 옵션들을 줄수있다. 
+{
+  "compilerOptions": {
+    "strict": true,         // 타입스크립트의 기능을 얼마나 엄격하게 적용해서 변환시킬 것이냐
+    "target": "ES5",        // 자스의 문법버젼
+    "module": "CommonJS",   // 모듈과 관련된 유형
+    "alwaysStrict": true,
+    "noImplicitAny": true,  // 자바스크립트에서 변환할때 명확하게 어떤타입인지 기술하도록 빨간줄을 그어준다. 
+    "noImplicitThis": true,
+    "sourceMap": true,
+    "downlevelIteration": true
+  }
+}
