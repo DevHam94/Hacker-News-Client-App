@@ -35,6 +35,7 @@ import template from './app.template';
 import { CantContainWhitespace, CantStartNumber, MinimumLengthLimit } from './constant';
 import { AnyObject } from './types';
 import { TextField, PasswordField, AddressField } from './views';
+import addressFieldTemplate from './views/address-field.template';
 
 export default class App {
     template = template;
@@ -65,6 +66,61 @@ export default class App {
         const emailField = new TextField('#required-fields', {
             id: 'email', label: '이메일', type: 'email', placeholder: '이메일을 입력해주세요', require: true,
         });
+
+        const passwordField = new PasswordField('#required-fields', {
+            id: 'password', label: '비밀번호', placeholder: '비밀번호를 입력해주세요',
+        });
+
+        const addressField = new AddressField('#optional-fields', {
+            id: 'address', label: '배송지 주소',
+        });
+
+        idField.addValidateRule(CantContainWhitespace);
+        idField.addValidateRule(CantStartNumber);
+        idField.addValidateRule(MinimumLengthLimit(3));
+
+        emailField.addValidateRule(CantContainWhitespace);
+    
+        this.fields.push(nameField);
+        this.fields.push(idField);
+        this.fields.push(emailField);
+        this.fields.push(passwordField);
+        this.fields.push(addressField);
+    }
+
+    private validFieldMonitor = () => {
+        const btnJoin = this.container.querySelector('#btn-join') as HTMLButtonElement;
+
+        if (this.fields.filter(field => field.isValid).length === this.fields.length) {
+            this.active = true;
+            btnJoin.classList.remove('bg-gray-300');
+            btnJoin.classList.add('bg-green-500');
+        } else {
+            this.active = false;
+            btnJoin.classList.remove('bg-green-500');
+            btnJoin.classList.add('bg-gray-300');
+        } 
+    }
+
+    private onSubmit = (e: Event) => {
+        e.preventDefault();
+
+        if (!this.active) return;
+
+        const submitData: AnyObject = this.fields
+            .map(field => ({ [field.name]: field.value }))
+            .reduce((a, b) => ({ ...a, ...b }), {});
+
+        console.log(submitData);
+    }
+
+    public render = () => {
+        this.container.innerHTML = this.template(this.data);
+        this.fields.forEach(field => {
+            field.render(true);
+        });
+
+        this.container.addEventListener('submit', this.onSubmit);
     }
 }
 
