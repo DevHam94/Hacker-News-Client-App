@@ -1,10 +1,9 @@
+import View from '../core/view';
+import { NewsFeedApi } from '../core/api';
+import { News, NewsFeed } from '../types';
+import { NEWS_URL } from '../config';
 
-export default class NewsFeedView extends View {
-    private api: NewsFeedApi;
-    private feeds: NewsFeed[];
-  
-    constructor(containerId: string) {
-      let template: string = '
+const template: string = `
         <div class="bg-gray-600 min-h-screen pb-8">
           <div class="bg-white text-xl">
             <div class="mx-auto px-t">
@@ -27,56 +26,63 @@ export default class NewsFeedView extends View {
             {{__news_feed__}}
           </div>
         </div>    
-      ';
-    }
-  
-    super(containerId, template);
-  
-    this.api = new NewsFeedApi(NEWS_URL);
-    this.feeds = store.feeds;
-  
-    if (this.feeds.length === 0) {
-      this.feeds = store.feeds = this.makeFeeds(this.api.getData());
-      this.makeFeeds();
-    }
-    }
-  
-  render(): void {
-     store.currentPage = Number(location.hash.substr(7) || 1);
-  
-     for (let i = (store.currentPage - 1) * 10; i < store.currentPage * 10; i++) {
-      const { id, title, comments_count, user, points, time_ago, read } = this.feeds[i];
-      this.addHtml(`
-        <div class="p-6 ${read ? 'bg-red-500' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
-        <div class="flex">
-          <div class="flex-auto">
-            <a href="#/show/${id}">${title}</a>
-          </div>
-          <div class="text-center text-sm">
-            <div class="w-10 text-white bg-green-300 rounded-lg px-0 py-2">${comments_count}</div>
-          </div>
-          </div>
-          <div class="flex mt-3">
-            <div class="grid grid-cols-3 text-sm text-gray-500">
-              <div><i class="fas fa-user mr-1></i>${user}</div>
-              <div><i class="fas fa-heart mr-1"></i>${points}</div>
-              <div><i class="far fa-clock mr-1"></i>${time_ago}</div>
-            </div>
-          </div>
-        </div>
-        `);
-      }
+      `;
+
+export default class NewsFeedView extends View {
+    private api: NewsFeedApi;
+    private store: NewsStore;
+
+    constructor(containerId: string, store: NewsStore) {
+        super(containerId, template);
     
-      this.setTemplateDate('news_feed', this.getHtml());
-      this.setTemplateData('prev_page', String(store.currentPage > 1 ? store.currentPage - 1 : 1));
-      this.setTemplateData('next_page', String(store.currentPage + 1));  
-    
-      this.updateView();
+        this.store = store;
+        this.api = new NewsFeedApi(NEWS_URL);
+
     }
   
-    public makeFeeds(): void {
-      for(let i = 0; i < feeds.length; i++) {
-        this.feeds[i].read = false;
-      }
+    render = (page: string = '1'): void {
+     this.store.currentPage = Number(page);
+
+     if(!this.store.hasFeeds) {
+        this.api.getDataWithPromise((feeds: NewsFeed[]) => {
+            this.store.setFeeds(feeds);
+            this.renderView();
+        }); 
+     }
+  
+     this.renderView();
+    
+    }
+  
+    renderView = () => {
+        for (let i = (this.store.currentPage - 1) * 10; i < this.store.currentPage * 10; i++) {
+            const { id, title, comments_count, user, points, time_ago, read } = this.store.getFeed(i);
+      
+            this.addHtml(`
+              <div class="p-6 ${read ? 'bg-red-500' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
+              <div class="flex">
+                <div class="flex-auto">
+                  <a href="#/show/${id}">${title}</a>
+                </div>
+                <div class="text-center text-sm">
+                  <div class="w-10 text-white bg-green-300 rounded-lg px-0 py-2">${comments_count}</div>
+                </div>
+                </div>
+                <div class="flex mt-3">
+                  <div class="grid grid-cols-3 text-sm text-gray-500">
+                    <div><i class="fas fa-user mr-1></i>${user}</div>
+                    <div><i class="fas fa-heart mr-1"></i>${points}</div>
+                    <div><i class="far fa-clock mr-1"></i>${time_ago}</div>
+                  </div>
+                </div>
+              </div>
+              `);
+            }
+          
+            this.setTemplateData('news_feed', this.getHtml());
+            this.setTemplateData('prev_page', String(this.store.prevPage));
+            this.setTemplateData('next_page', String(this.store.nextPage));  
+          
+            this.updateView();
     }
   }

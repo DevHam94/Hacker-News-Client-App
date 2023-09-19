@@ -33,7 +33,7 @@ export default abstract class View {
     return snapshot;
     }
 
-    protected setTemplateDate(key: string, value: string): void {
+    protected setTemplateData(key: string, value: string): void {
     this.renderTemplate = this.renderTemplate.replace(`{{__${key}__}}`, value);
     }
 

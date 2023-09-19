@@ -1,8 +1,11 @@
-export default class NewsDetailView extends View {
-    constructor(containerId: string) {
-        let template = `
-            <div class="bg-gray-600 min-h-screen pb-8">
-              <div class="bg-white text-xl">
+import View from '../core/view';
+import { NewsDetailApi } from '../core/api';
+import { NewsDetail, NewsComment, NewsStore } from '../types';
+import { CONTENT_URL } from '../config';
+
+const template = `
+        <div class="bg-gray-600 min-h-screen pb-8">
+          <div class="bg-white text-xl">
                 <div class="mx-auto px-4">
                 <div class="flex justify-between items-center py-6">\
                   <div class="flex justify-start">
@@ -19,41 +22,37 @@ export default class NewsDetailView extends View {
   
             <div class="h-full border rounded-xl bg-white m-6 p-4 ">
               <h2>{{__title__}}</h2>
-              <div class="text-gray-400 h-20">
-                {{__content__}}
-              </div>
-  
-              {{__comments__}}
-  
-            </div>
+          <div class="text-gray-400 h-20">
+            {{__content__}}
           </div>
-        `;
   
-        super(containerId, template);
-  
+            {{__comments__}}
+        </div>
+      </div>
+    `;
+export default class NewsDetailView extends View {
+    private store: NewsStore;
+
+    constructor(containerId: string, store: NewsStore) {
+      super(containerId, template);
     }
   
-    render() {
-      const id = location.hash.substr(7);
+    render(id: string, ): void {
       const api = new NewsDetailApi(CONTENT_URL.replace('@id', id));
-      const newsDetail: NewsDetail = api.getData();
+      api.getDataWithPromise((data: NewsDetail) => {
+        const { title, content, comments } = data;
   
-      for(let i=0; i < store.feeds.length; i++) {
-        if (store.feeds[i].id === Number(id)) {
-          store.feeds[i].read = true;
-          break;
-        }
-      }
-  
-      this.setTemplateDate('comments', this.makeComment(newsDetail.comments));
-      this.setTemplateDate('currentPage', String(store.currentPage));
-      this.setTemplateDate('title', newsDetail.title);
-      this.setTemplateDate('content', newsDetail.content);
-  
-      this.updateView();
+        this.store.makeRead(Number(id));
+        this.setTemplateData('currentPage', this.store.currentPage.toString());
+        this.setTemplateData('title', title);
+        this.setTemplateData('content', content);
+        this.setTemplateData('comments', this.makeComment(comments));
+    
+        this.updateView();
+      });
     }
   
-    makeComment(comments: NewsComment[]): string {
+    private makeComment(comments: NewsComment[]): string {
       for(let i = 0; i < comments.length; i++){
         const comment: NewsComment = comments[i];
     
