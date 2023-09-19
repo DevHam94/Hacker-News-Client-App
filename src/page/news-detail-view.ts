@@ -37,8 +37,11 @@ export default class NewsDetailView extends View {
       super(containerId, template);
     }
   
-    render(id: string, ): void {
+    render = async (id: string): Promise<void> {
       const api = new NewsDetailApi(CONTENT_URL.replace('@id', id));
+      
+      const { title, content, comments } = await api.getData();
+      
       api.getDataWithPromise((data: NewsDetail) => {
         const { title, content, comments } = data;
   

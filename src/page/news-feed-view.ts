@@ -40,18 +40,15 @@ export default class NewsFeedView extends View {
 
     }
   
-    render = (page: string = '1'): void {
+    render = async (page: string = '1'): Promise(void) = {
      this.store.currentPage = Number(page);
 
      if(!this.store.hasFeeds) {
-        this.api.getDataWithPromise((feeds: NewsFeed[]) => {
-            this.store.setFeeds(feeds);
-            this.renderView();
-        }); 
+        this.store.setFeeds(await this.api.getData());
+      }; 
      }
   
      this.renderView();
-    
     }
   
     renderView = () => {
